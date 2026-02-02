@@ -9,17 +9,17 @@ export default function Home() {
 
   const handleSendMessage = (e: any, message: string) => {
     e.preventDefault();
-    if (input.trim()) {
-      socket?.emit("send_message", {
-        text: input,
-      });
+    if (message.trim()) {
+      socket?.emit("chat-message",
+        message);
     }
     setInput("");
   };
 
   useEffect(() => {
 
-    socket?.on("chat-message", (data: string) => {
+    socket?.on("get-messages", (data: string) => {
+      console.log("m ",data)
       setMessages((prev) => [...prev, data])
     })
 
@@ -31,7 +31,7 @@ export default function Home() {
         Chat app
       </h1>
 
-      {messages.map((m)=>{
+      {messages.map((m) => {
         return (
           <p>
             {m}
