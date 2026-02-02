@@ -4,8 +4,7 @@ import { useEffect, useState } from "react";
 
 export default function Home() {
   const [input, setInput] = useState("")
-  const { socket } = useSocket()
-  const [messages, setMessages] = useState<string[]>([])
+  const { socket,messages } = useSocket()
 
   const handleSendMessage = (e: any, message: string) => {
     e.preventDefault();
@@ -16,24 +15,15 @@ export default function Home() {
     setInput("");
   };
 
-  useEffect(() => {
-
-    socket?.on("get-messages", (data: string) => {
-      console.log("m ",data)
-      setMessages((prev) => [...prev, data])
-    })
-
-  }, [])
-
   return (
     <main className="flex flex-col items-center w-screen min-h-screen">
       <h1 className="text-2xl font-semibold">
         Chat app
       </h1>
 
-      {messages.map((m) => {
+      {messages.map((m,i) => {
         return (
-          <p>
+          <p key={i}>
             {m}
           </p>
         )
