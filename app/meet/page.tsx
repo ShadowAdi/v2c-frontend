@@ -7,17 +7,17 @@ const page = () => {
 
     useEffect(() => {
         socket?.emit("join-room", {
-            meetId: "123",
-            roomId: "abc"
+            meetId: crypto.randomUUID(),
+            roomId: crypto.randomUUID()
         })
     }, [socket])
-    
+
     useEffect(() => {
-      socket?.on("user-joined",({meetId})=>{
-        console.log(`Someone joined `,meetId)
-      })
+        socket?.on("user-joined", ({ meetId }) => {
+            console.log(`Someone joined `, meetId)
+        })
     }, [])
-    
+
 
     return (
         <div>meet page</div>
