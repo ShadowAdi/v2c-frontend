@@ -72,12 +72,13 @@ const Page = () => {
     if (!socket || !roomId) return
 
     socket.emit("join-room", {
-      meetId: myUniqueId,   // identity of this user
-      roomId: roomId       // shared room
+      userId: myUniqueId,   // identity of this user
+      meetId: roomId       // shared room
     })
 
-    socket.on("user-joined", ({ meetId }) => {
-      console.log(`Someone joined with socket id: ${meetId}`)
+    socket.on("user-joined", ({ otherPersonId }) => {
+      setIdToConnect(otherPersonId)
+      console.log(`Someone joined with socket id: ${otherPersonId}`)
     })
 
     return () => {
