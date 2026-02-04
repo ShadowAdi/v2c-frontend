@@ -8,7 +8,7 @@ import { getPeer } from '@/lib/peer'
 const Page = () => {
   const { socket } = useSocket()
   const [isConnected, setIsConnected] = useState(false)
-  const [myUniqueId, setMyUniqueId] = useState<string>(crypto.randomUUID().split("-")[-1])
+  const [myUniqueId, setMyUniqueId] = useState<string>(crypto.randomUUID().split("-").at(-1) || crypto.randomUUID())
   const [idToConnect, setIdToConnect] = useState<string>("")
   const { meetId: roomId }: { meetId: string } = useParams()
 
@@ -69,18 +69,47 @@ const Page = () => {
 
   useEffect(() => {
     navigator.mediaDevices.getUserMedia({
-      video:true,
-      audio:true
-    }).then((stream)=>{
-      const call=peerRef.current?.call(idToConnect,stream)
-      if (call) {
-        call.on("stream",(userVideoStream)=>{
-          if (remoteVideoRef.current) {
-            remoteVideoRef.current.srcObject=userVideoStream
-          }
-        })
+      video: true,
+      audio: true
+    }).then((stream) => {
+      localStreamRef.current = stream;
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = stream;
       }
-    })
+    }).catch((error) => {
+      console.error("Error accessing media devices:", error);
+    });
+
+    return () => {
+      if (localStreamRef.current) {
+        localStreamRef.current.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!idToConnect || !peerRef.current || !localStreamRef.current) return;
+
+    console.log("Making call to:", idToConnect);
+    const call = peerRef.current.call(idToConnect, localStreamRef.current);
+    callRef.current = call;
+
+    call.on("stream", (remoteStream) => {
+      console.log("Received remote stream from call");
+      remoteStreamRef.current = remoteStream;
+      if (remoteVideoRef.current) {
+        remoteVideoRef.current.srcObject = remoteStream;
+      }
+      setIsConnected(true);
+    });
+
+    call.on("close", () => {
+      console.log("Call closed");
+      setIsConnected(false);
+      if (remoteVideoRef.current) {
+        remoteVideoRef.current.srcObject = null;
+      }
+    });
   }, [idToConnect])
   
 
@@ -105,8 +134,17 @@ const Page = () => {
 
   return <div className='flex flex-col justify-center items-center p-12'>
     <p>your id : {myUniqueId}</p>
-    <video className='w-72' playsInline ref={localVideoRef} autoPlay />
-    <video className='w-72' playsInline ref={remoteVideoRef} autoPlay />
+    <p>Connected: {isConnected ? 'Yes' : 'No'}</p>
+    <div className='flex gap-4'>
+      <div>
+        <p className='text-sm'>You</p>
+        <video className='w-72' playsInline ref={localVideoRef} autoPlay muted />
+      </div>
+      <div>
+        <p className='text-sm'>Remote</p>
+        <video className='w-72' playsInline ref={remoteVideoRef} autoPlay />
+      </div>
+    </div>
   </div>
 }
 
