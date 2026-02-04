@@ -3,7 +3,7 @@ import { useSocket } from '@/context/socketContext'
 import { use, useEffect, useRef, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Peer from 'peerjs'
-import { getPeer } from '@/lib/peer'
+import { getPeer, destroyPeer } from '@/lib/peer'
 
 const Page = () => {
   const { socket } = useSocket()
@@ -55,17 +55,13 @@ const Page = () => {
         }
       })
 
-      peerInstance.on("error", (error) => {
-        console.error("PeerJS error:", error);
-      });
-
       return () => {
-        if (peerInstance) {
-          peerInstance.destroy();
+        if (localStreamRef.current) {
+          localStreamRef.current.getTracks().forEach(track => track.stop());
         }
       };
     }
-  }, [myUniqueId])
+  }, [myUniqueId]);
 
   useEffect(() => {
     navigator.mediaDevices.getUserMedia({
@@ -89,9 +85,19 @@ const Page = () => {
 
   useEffect(() => {
     if (!idToConnect || !peerRef.current || !localStreamRef.current) return;
+    if (peerRef.current.destroyed || !peerRef.current.open) {
+      console.log("Peer not ready yet, waiting...");
+      return;
+    }
 
     console.log("Making call to:", idToConnect);
     const call = peerRef.current.call(idToConnect, localStreamRef.current);
+    
+    if (!call) {
+      console.error("Failed to create call");
+      return;
+    }
+    
     callRef.current = call;
 
     call.on("stream", (remoteStream) => {
@@ -109,6 +115,10 @@ const Page = () => {
       if (remoteVideoRef.current) {
         remoteVideoRef.current.srcObject = null;
       }
+    });
+
+    call.on("error", (err) => {
+      console.error("Call error:", err);
     });
   }, [idToConnect])
   
@@ -130,7 +140,7 @@ const Page = () => {
     return () => {
       socket.off("user-joined")
     }
-  }, [socket, roomId])
+  }, [socket, roomId, myUniqueId])
 
   return <div className='flex flex-col justify-center items-center p-12'>
     <p>your id : {myUniqueId}</p>
