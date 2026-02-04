@@ -86,7 +86,11 @@ const Page = () => {
     }
   }, [socket, roomId])
 
-  return <div>meet page</div>
+  return <div className='flex flex-col justify-center items-center p-12'>
+    <p>your id : {myUniqueId}</p>
+    <video className='w-72' playsInline ref={localVideoRef} autoPlay />
+    <video className='w-72' playsInline ref={remoteVideoRef} autoPlay />
+  </div>
 }
 
 export default Page
