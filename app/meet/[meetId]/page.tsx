@@ -6,13 +6,13 @@ import { useParams } from 'next/navigation'
 const Page = () => {
   const { socket } = useSocket()
   const params = useParams()
-  const roomId = params.meetId  
-
+  const roomId = params.meetId 
+  const newId=crypto.randomUUID()
   useEffect(() => {
     if (!socket || !roomId) return
 
     socket.emit("join-room", {
-      meetId: socket.id,   // identity of this user
+      meetId: newId,   // identity of this user
       roomId: roomId       // shared room
     })
 
