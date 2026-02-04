@@ -67,6 +67,23 @@ const Page = () => {
     }
   }, [myUniqueId])
 
+  useEffect(() => {
+    navigator.mediaDevices.getUserMedia({
+      video:true,
+      audio:true
+    }).then((stream)=>{
+      const call=peerRef.current?.call(idToConnect,stream)
+      if (call) {
+        call.on("stream",(userVideoStream)=>{
+          if (remoteVideoRef.current) {
+            remoteVideoRef.current.srcObject=userVideoStream
+          }
+        })
+      }
+    })
+  }, [idToConnect])
+  
+
 
   useEffect(() => {
     if (!socket || !roomId) return
