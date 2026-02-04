@@ -72,8 +72,8 @@ const Page = () => {
     if (!socket || !roomId) return
 
     socket.emit("join-room", {
-      userId: myUniqueId,   // identity of this user
-      meetId: roomId       // shared room
+      userId: myUniqueId, 
+      meetId: roomId      
     })
 
     socket.on("user-joined", ({ otherPersonId }) => {
